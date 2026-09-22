@@ -2,7 +2,6 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // حماية لوحة الإدارة فقط
     if (url.pathname.startsWith("/admin")) {
       const auth = request.headers.get("Authorization");
 
@@ -10,7 +9,8 @@ export default {
         return new Response("Authentication required", {
           status: 401,
           headers: {
-            "WWW-Authenticate": 'Basic realm="Alrehana Library Admin"'
+            "WWW-Authenticate": 'Basic realm="Alrehana Library Admin"',
+            "Cache-Control": "no-store"
           }
         });
       }
@@ -19,22 +19,30 @@ export default {
         const decoded = atob(auth.slice(6));
         const separator = decoded.indexOf(":");
 
+        if (separator === -1) {
+          throw new Error("Invalid authorization");
+        }
+
         const username = decoded.slice(0, separator);
         const password = decoded.slice(separator + 1);
 
-        if (
-          username !== "admin" ||
-          password !== env.ADMIN_PASSWORD
-        ) {
+        if (username !== "admin" || password !== env.ADMIN_PASSWORD) {
           return new Response("Unauthorized", {
             status: 401,
             headers: {
-              "WWW-Authenticate": 'Basic realm="Alrehana Library Admin"'
+              "WWW-Authenticate": 'Basic realm="Alrehana Library Admin"',
+              "Cache-Control": "no-store"
             }
           });
         }
       } catch {
-        return new Response("Unauthorized", { status: 401 });
+        return new Response("Unauthorized", {
+          status: 401,
+          headers: {
+            "WWW-Authenticate": 'Basic realm="Alrehana Library Admin"',
+            "Cache-Control": "no-store"
+          }
+        });
       }
     }
 
