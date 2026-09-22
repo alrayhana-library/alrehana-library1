@@ -1,264 +1,251 @@
-const defaults = {
-  title: "مكتبة الريحانة",
-  heroTitle: "كل ما تحتاجه للدراسة والعمل في مكان واحد",
-  heroText: "طباعة واستنساخ وقرطاسية وخدمات إلكترونية مع إمكانية التوصيل.",
-  phone: "أضف رقم الهاتف من لوحة الإدارة",
-  address: "أضف العنوان من لوحة الإدارة",
-  hours: "أضف أوقات الدوام من لوحة الإدارة",
+const productsBox = document.getElementById("products");
+const addProductButton = document.getElementById("addProduct");
 
-  services: [
-    ["🖨️", "طباعة", "طباعة المستندات والملفات بجودة واضحة."],
-    ["📄", "استنساخ", "استنساخ الملازم والوثائق والمستندات."],
-    ["📚", "قرطاسية", "دفاتر وأقلام ومستلزمات مدرسية."]
-  ],
+let products = [];
 
-  products: [
-    ["📘", "دفاتر مدرسية", "منتجات متنوعة للدراسة", "متوفر", ""],
-    ["✏️", "أدوات مدرسية", "أقلام ومستلزمات", "متوفر", ""]
-  ]
-};
+async function loadProducts() {
+  const response = await fetch("/api/products");
 
+  if (!response.ok) {
+    productsBox.innerHTML = "<p>تعذر تحميل المنتجات.</p>";
+    return;
+  }
 
-// تحميل البيانات
-let data;
-
-try {
-  data = JSON.parse(localStorage.getItem("rayhana")) || defaults;
-} catch (error) {
-  data = defaults;
-}
-
-if (!Array.isArray(data.services)) {
-  data.services = [];
-}
-
-if (!Array.isArray(data.products)) {
-  data.products = [];
-}
-
-
-const $ = id => document.getElementById(id);
-
-
-// ======================================================
-// تحميل البيانات
-// ======================================================
-
-function loadData() {
-
-  $("title").value = data.title || "";
-  $("heroTitle").value = data.heroTitle || "";
-  $("heroText").value = data.heroText || "";
-  $("phone").value = data.phone || "";
-  $("address").value = data.address || "";
-  $("hours").value = data.hours || "";
-
-  renderServices();
+  products = await response.json();
   renderProducts();
 }
 
-
-// ======================================================
-// الخدمات
-// ======================================================
-
-function renderServices() {
-
-  const box = $("services");
-
-  box.innerHTML = data.services.map((service, index) => 
-    
-    <div class="admin-item">
-
-      <input
-        value="${escapeHtml(service[0])}"
-        data-index="${index}"
-        data-field="0"
-        placeholder="الأيقونة"
-      >
-
-      <input
-        value="${escapeHtml(service[1])}"
-        data-index="${index}"
-        data-field="1"
-        placeholder="اسم الخدمة"
-      >
-
-      <textarea
-        data-index="${index}"
-        data-field="2"
-        placeholder="وصف الخدمة"
-      >${escapeHtml(service[2])}</textarea>
-
-      <button
-        type="button"
-        onclick="removeService(${index})"
-      >
-        حذف
-      </button>
-
-    </div>
-
-  ).join("");
-}
-
-
-// ======================================================
-// المنتجات
-// ======================================================
-
 function renderProducts() {
+  productsBox.innerHTML = "";
 
-  const box = $("products");
+  if (!products.length) {
+    productsBox.innerHTML = "<p>لا توجد منتجات حالياً.</p>";
+    return;
+  }
 
-  box.innerHTML = data.products.map((product, index) => 
+  products.forEach(product => {
+    const box = document.createElement("div");
+    box.className = "card";
 
-    <div class="admin-item product-admin-item">
+    box.style.marginBottom = "15px";
 
-      <h3>المنتج ${index + 1}</h3>
-
-      <label>صورة المنتج</label>
-
+    box.innerHTML = 
       ${
-        product[4]
-          ? 
-            <img
-              src="${product[4]}"
-              style="
-                width:120px;
-                height:120px;
-                object-fit:cover;
-                border-radius:12px;
-                display:block;
-                margin:10px 0;
-              "
-            >
-          
-          : 
-            <div style="
-              width:120px;
-              height:120px;
-              background:#eee;
-              border-radius:12px;
-              display:flex;
-              align-items:center;
-              justify-content:center;
-              margin:10px 0;
-            ">
-              لا توجد صورة
-            </div>
-          
+        product.image
+          ? <img src="${product.image}" style="width:120px;height:120px;object-fit:cover;border-radius:10px;">
+          : <div style="font-size:45px;">${escapeHtml(product.icon)}</div>
       }
 
-      <input
-        type="file"
-        accept="image/*"
-        data-image-index="${index}"
-      >
+      <h3>${escapeHtml(product.name)}</h3>
 
-      <input
-        value="${escapeHtml(product[1])}"
-        data-index="${index}"
-        data-field="1"
-        placeholder="اسم المنتج"
-      >
+      <p>${escapeHtml(product.description)}</p>
 
-      <input
-        value="${escapeHtml(product[2])}"
-        data-index="${index}"
-        data-field="2"
-        placeholder="وصف المنتج"
-      >
+      <strong>${escapeHtml(product.status)}</strong>
 
-      <input
-        value="${escapeHtml(product[3])}"
-        data-index="${index}"
-        data-field="3"
-        placeholder="الحالة مثل: متوفر"
-      >
+      <br><br>
 
       <button
         type="button"
-        onclick="removeProduct(${index})"
+        data-delete="${product.id}"
+        style="background:#b00020;"
       >
         حذف المنتج
       </button>
+    ;
 
-    </div>
-
-  ).join("");
-  // اختيار الصور
-  box.querySelectorAll("[data-image-index]").forEach(input => {
-
-    input.addEventListener("change", async function () {
-
-      const index = Number(this.dataset.imageIndex);
-
-      const file = this.files[0];
-
-      if (!file) return;
-
-      if (!file.type.startsWith("image/")) {
-        alert("يرجى اختيار صورة فقط.");
-        return;
-      }
-
-      try {
-
-        const image = await resizeImage(file);
-
-        data.products[index][4] = image;
-
-        renderProducts();
-
-      } catch (error) {
-
-        alert("حدث خطأ أثناء قراءة الصورة.");
-
-      }
-
-    });
-
+    productsBox.appendChild(box);
   });
 
+  document.querySelectorAll("[data-delete]").forEach(button => {
+    button.addEventListener("click", () => {
+      deleteProduct(button.dataset.delete);
+    });
+  });
 }
 
 
-// ======================================================
-// تصغير الصور حتى لا يمتلئ localStorage
-// ======================================================
+addProductButton.addEventListener("click", () => {
+  const box = document.createElement("div");
+
+  box.className = "card";
+
+  box.style.marginTop = "15px";
+
+  box.innerHTML = 
+    <h3>إضافة منتج جديد</h3>
+
+    <label>رمز المنتج</label>
+    <input
+      class="product-icon"
+      type="text"
+      value="📦"
+      maxlength="10"
+    >
+
+    <label>اسم المنتج</label>
+    <input
+      class="product-name"
+      type="text"
+      placeholder="مثلاً: دفتر مدرسي"
+    >
+
+    <label>وصف المنتج</label>
+    <textarea
+      class="product-description"
+      rows="3"
+      placeholder="وصف المنتج"
+    ></textarea>
+
+    <label>الحالة</label>
+    <input
+      class="product-status"
+      type="text"
+      value="متوفر"
+    >
+
+    <label>صورة المنتج</label>
+    <input
+      class="product-image"
+      type="file"
+      accept="image/*"
+    >
+
+    <img
+      class="image-preview"
+      style="display:none;width:150px;height:150px;object-fit:cover;border-radius:10px;margin-top:10px;"
+    >
+
+    <br>
+
+    <button
+      type="button"
+      class="save-product"
+    >
+      حفظ المنتج
+    </button>
+
+    <button
+      type="button"
+      class="cancel-product"
+      style="background:#777;margin-top:8px;"
+    >
+      إلغاء
+    </button>
+  ;
+
+  productsBox.prepend(box);
+
+  const imageInput = box.querySelector(".product-image");
+  const preview = box.querySelector(".image-preview");
+
+  imageInput.addEventListener("change", async () => {
+    if (!imageInput.files[0]) return;
+
+    try {
+      preview.src = await resizeImage(imageInput.files[0]);
+      preview.style.display = "block";
+    } catch {
+      alert("تعذر قراءة الصورة.");
+    }
+  });
+
+  box.querySelector(".cancel-product").onclick = () => {
+    box.remove();
+  };
+
+  box.querySelector(".save-product").onclick = async () => {
+    const name = box.querySelector(".product-name").value.trim();
+
+    if (!name) {
+      alert("اكتب اسم المنتج.");
+      return;
+    }
+
+    let image = "";
+
+    if (imageInput.files[0]) {
+      image = await resizeImage(imageInput.files[0]);
+
+      if (image.length > 750000) {
+        alert("الصورة كبيرة جداً. اختر صورة أصغر.");
+        return;
+      }
+    }
+
+    const product = {
+      icon: box.querySelector(".product-icon").value.trim() || "📦",
+      name,
+      description: box.querySelector(".product-description").value.trim(),
+      status: box.querySelector(".product-status").value.trim() || "متوفر",
+      image
+    };
+
+    const response = await fetch("/api/products", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(product)
+    });const result = await response.json();
+
+    if (!response.ok) {
+      alert(result.error || "تعذر حفظ المنتج.");
+      return;
+    }
+
+    alert("تم حفظ المنتج وسيظهر لجميع الزوار.");
+
+    box.remove();
+
+    await loadProducts();
+  };
+});
+
+
+async function deleteProduct(id) {
+  if (!confirm("هل تريد حذف هذا المنتج؟")) {
+    return;
+  }
+
+  const response = await fetch(
+    "/api/products/" + encodeURIComponent(id),
+    {
+      method: "DELETE"
+    }
+  );
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    alert(result.error || "تعذر حذف المنتج.");
+    return;
+  }
+
+  await loadProducts();
+}
+
 
 function resizeImage(file) {
-
   return new Promise((resolve, reject) => {
-
     const reader = new FileReader();
 
-    reader.onload = function (event) {
-
+    reader.onload = () => {
       const img = new Image();
 
-      img.onload = function () {
-
+      img.onload = () => {
         const maxSize = 700;
 
         let width = img.width;
         let height = img.height;
 
-        if (width > height) {
-
-          if (width > maxSize) {
+        if (width > maxSize || height > maxSize) {
+          if (width > height) {
             height = Math.round(height * maxSize / width);
             width = maxSize;
-          }
-
-        } else {
-
-          if (height > maxSize) {
+          } else {
             width = Math.round(width * maxSize / height);
             height = maxSize;
           }
-
         }
 
         const canvas = document.createElement("canvas");
@@ -268,188 +255,37 @@ function resizeImage(file) {
 
         const ctx = canvas.getContext("2d");
 
-        ctx.drawImage(img, 0, 0, width, height);
-
-        resolve(
-          canvas.toDataURL("image/jpeg", 0.80)
+        ctx.drawImage(
+          img,
+          0,
+          0,
+          width,
+          height
         );
 
+        resolve(
+          canvas.toDataURL("image/jpeg", 0.75)
+        );
       };
 
       img.onerror = reject;
 
-      img.src = event.target.result;
-
+      img.src = reader.result;
     };
 
     reader.onerror = reject;
 
     reader.readAsDataURL(file);
-
   });
-
 }
 
 
-// ======================================================
-// حماية النصوص
-// ======================================================
-
-function escapeHtml(value) {
-
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text ?? "";
+  return div.innerHTML;
 }
 
 
-// ======================================================
-// جمع البيانات
-// ======================================================
-
-function collectData() {
-
-  data.title = $("title").value;
-  data.heroTitle = $("heroTitle").value;
-  data.heroText = $("heroText").value;
-  data.phone = $("phone").value;
-  data.address = $("address").value;
-  data.hours = $("hours").value;
-
-
-  document
-    .querySelectorAll("#services [data-index]")
-    .forEach(input => {
-
-      const index = Number(input.dataset.index);
-      const field = Number(input.dataset.field);
-
-      if (data.services[index]) {
-        data.services[index][field] = input.value;
-      }
-
-    });
-
-
-  document
-    .querySelectorAll("#products [data-index]")
-    .forEach(input => {
-
-      const index = Number(input.dataset.index);
-      const field = Number(input.dataset.field);
-
-      if (data.products[index]) {
-        data.products[index][field] = input.value;
-      }
-
-    });
-
-}
-
-
-// ======================================================
-// حفظ
-// ======================================================
-
-$("save").addEventListener("click", () => {
-
-  collectData();
-
-  try {
-
-    localStorage.setItem(
-      "rayhana",
-      JSON.stringify(data)
-    );
-
-    $("status").textContent =
-      "تم حفظ التغييرات والمنتجات بنجاح.";
-
-  } catch (error) {
-
-    $("status").textContent =
-      "الصورة كبيرة جدًا. اختر صورة أصغر.";
-
-  }
-
-});
-
-
-// ======================================================
-// إضافة خدمة
-// ======================================================
-
-$("addService").addEventListener("click", () => {
-
-  collectData();
-
-  data.services.push([
-    "🆕",
-    "خدمة جديدة",
-    "وصف الخدمة"
-  ]);
-
-  renderServices();
-
-});
-
-
-// ======================================================
-// إضافة منتج
-// ======================================================
-
-$("addProduct").addEventListener("click", () => {
-  collectData();
-
-  data.products.push([
-    "📦",
-    "منتج جديد",
-    "وصف المنتج",
-    "متوفر",
-    ""
-  ]);
-
-  renderProducts();
-
-});
-
-
-// ======================================================
-// حذف خدمة
-// ======================================================
-
-function removeService(index) {
-
-  collectData();
-
-  data.services.splice(index, 1);
-
-  renderServices();
-
-}
-
-
-// ======================================================
-// حذف منتج
-// ======================================================
-
-function removeProduct(index) {
-
-  collectData();
-
-  data.products.splice(index, 1);
-
-  renderProducts();
-
-}
-
-
-// ======================================================
-// تشغيل النظام
-// ======================================================
-
-loadData();
+// تحميل المنتجات عند فتح لوحة الإدارة
+loadProducts();
