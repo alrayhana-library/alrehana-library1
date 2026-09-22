@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة إدارة مكتبة الريحانة</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <main class="container">
+
+    <header class="hero">
+      <h1>لوحة إدارة مكتبة الريحانة</h1>
+      <p>إدارة بيانات الموقع والخدمات والمنتجات</p>
+    </header>
+
+    <section class="card">
+      <h2>بيانات المكتبة</h2>
+
+      <label for="title">اسم المكتبة</label>
+      <input id="title" type="text">
+
+      <label for="heroTitle">العنوان الرئيسي</label>
+      <input id="heroTitle" type="text">
+
+      <label for="heroText">وصف المكتبة</label>
+      <textarea id="heroText" rows="4"></textarea>
+
+      <label for="phone">رقم الهاتف</label>
+      <input id="phone" type="text">
+
+      <label for="address">العنوان</label>
+      <input id="address" type="text">
+
+      <label for="hours">أوقات الدوام</label>
+      <input id="hours" type="text">
+
+      <button id="save" type="button">حفظ التغييرات</button>
+
+      <p id="status"></p>
+    </section>
+
+    <section class="card">
+      <h2>الخدمات</h2>
+
+      <div id="services"></div>
+
+      <button id="addService" type="button">
+        إضافة خدمة
+      </button>
+    </section>
+
+    <section class="card">
+      <h2>المنتجات</h2>
+
+      <div id="products"></div>
+
+      <button id="addProduct" type="button">
+        إضافة منتج
+      </button>
+    </section>
+
+    <section class="card">
+      <a href="index.html">← العودة إلى الموقع</a>
+    </section>
+
+  </main>
+
+  <script src="admin.js"></script>
+
+</body>
+</html>
