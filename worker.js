@@ -45,8 +45,8 @@ export default {
 
         // التحقق من اسم المستخدم وكلمة المرور
         if (
-          username !== "Alison" ||
-          password !== env.alison_com_www
+          username !== "admin" ||
+          password !== env.ADMIN_PASSWORD
         ) {
           return new Response("Unauthorized", {
             status: 401,
