@@ -569,3 +569,4 @@ function base64urlBytes(bytes) {
 
     binary +=
       String.fromCharCode(byte);
+    {
