@@ -8,13 +8,13 @@ const defaults = {
     "طباعة واستنساخ وقرطاسية وخدمات إلكترونية مع إمكانية التوصيل.",
 
   phone:
-    "أضف رقم الهاتف من لوحة الإدارة",
+    "07855716535",
 
   address:
-    "أضف العنوان من لوحة الإدارة",
+    "بغداد",
 
   hours:
-    "أضف أوقات الدوام من لوحة الإدارة",
+    "متوفرة بكل وقت",
 
   services: [
     ["🖨️", "طباعة", "طباعة المستندات والملفات بجودة واضحة."],
@@ -53,13 +53,13 @@ function renderServices() {
   if (!servicesGrid) return;
 
   servicesGrid.innerHTML =
-    defaults.services.map(x => 
+    defaults.services.map(x => `
       <article class="card">
         <b>${escapeHtml(x[0])}</b>
         <h3>${escapeHtml(x[1])}</h3>
         <p>${escapeHtml(x[2])}</p>
       </article>
-    ).join("");
+    `).join("");
 }
 
 
@@ -70,21 +70,22 @@ function renderProducts(products) {
   if (!productsGrid) return;
 
   if (!products.length) {
-    productsGrid.innerHTML =
-      <p>لا توجد منتجات مضافة حالياً.</p>;
+    productsGrid.innerHTML = `
+      <p>لا توجد منتجات مضافة حالياً.</p>
+    `;
 
     return;
   }
 
   productsGrid.innerHTML =
-    products.map(product => 
+    products.map(product => `
       <article class="card product-card">
 
         ${
           product.image
-            ? 
+            ? `
               <img
-                src="${product.image}"
+                src="${escapeHtml(product.image)}"
                 alt="${escapeHtml(product.name)}"
                 style="
                   width:100%;
@@ -96,12 +97,12 @@ function renderProducts(products) {
                   margin:auto;
                 "
               >
-            
-            : 
+            `
+            : `
               <div style="font-size:55px;text-align:center;">
                 ${escapeHtml(product.icon || "📦")}
               </div>
-            
+            `
         }
 
         <h3>${escapeHtml(product.name)}</h3>
@@ -115,7 +116,7 @@ function renderProducts(products) {
         </strong>
 
       </article>
-    ).join("");
+    `).join("");
 }
 
 
@@ -129,6 +130,7 @@ function escapeHtml(text) {
 
 
 async function render() {
+
   const siteTitle =
     document.getElementById("siteTitle");
 
@@ -146,6 +148,7 @@ async function render() {
 
   const hours =
     document.getElementById("hours");
+
 
   if (siteTitle)
     siteTitle.textContent = defaults.title;
@@ -165,23 +168,29 @@ async function render() {
   if (hours)
     hours.textContent = defaults.hours;
 
+
   renderServices();
+
 
   const products = await loadProducts();
 
   renderProducts(products);
 
+
   const serviceSelect =
     document.getElementById("service");
 
   if (serviceSelect) {
+
     serviceSelect.innerHTML =
-      defaults.services.map(x =>
+      defaults.services.map(x => `
         <option value="${escapeHtml(x[1])}">
           ${escapeHtml(x[1])}
         </option>
-      ).join("");
+      `).join("");
+
   }
+
 
   const year =
     document.getElementById("year");
@@ -194,18 +203,26 @@ async function render() {
 
 
 const orderForm =
-  document.getElementById("orderForm");if (orderForm) {
+  document.getElementById("orderForm");
+
+if (orderForm) {
+
   orderForm.onsubmit = event => {
+
     event.preventDefault();
 
     const msg =
       document.getElementById("msg");
 
     if (msg) {
+
       msg.textContent =
         "تم استلام الطلب مبدئيًا. يرجى التواصل لتأكيد التفاصيل.";
+
     }
+
   };
+
 }
 
 
